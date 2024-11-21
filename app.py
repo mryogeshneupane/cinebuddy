@@ -2,29 +2,38 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-#route to return student name and student number
-@app.route('/')
-def home():
-    return jsonify({
-        "student_full_name": "Yogesh Neupane",
-        "student_number": "200570557"
-    })
-
-#fulfillment route
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json()
-    #get the intent name
+    
+    # Get the intent name
     intent = req.get('queryResult', {}).get('intent', {}).get('displayName', '')
-
-    #response for fulfillment
+    
+    # Default student data (replace with actual data or a database lookup if needed)
+    student_name = "Yogesh Neupane"
+    student_id = "200570557"
+    
+    # Create a response based on the intent
     if intent == 'FulfillmentIntent':
-        response_text = "This is a response from the Flask webhook!"
+        response_text = f"The student name is {student_name}, and the ID is {student_id}."
     else:
         response_text = "Fallback response"
-
+    
+    # Build the JSON response
     return jsonify({
-        "fulfillmentText": response_text
+        "fulfillmentText": response_text,
+        "fulfillmentMessages": [
+            {
+                "text": {
+                    "text": [response_text]
+                }
+            }
+        ],
+        "payload": {
+            "studentName": student_name,
+            "studentID": student_id
+        },
+        "source": "your-app-on-render"
     })
 
 if __name__ == '__main__':

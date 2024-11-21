@@ -2,30 +2,52 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-#route to return student name and student number
-@app.route('/')
-def home():
-    return jsonify({
-        "student_full_name": "Yogesh Neupane",
-        "student_number": "200570557"
-    })
-
-#fulfillment route
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json()
-    #get the intent name
+
+    # Extract the intent name to check what the user is asking for
     intent = req.get('queryResult', {}).get('intent', {}).get('displayName', '')
 
-    #response for fulfillment
-    if intent == 'FulfillmentIntent':
-        response_text = "This is a response from the Flask webhook!"
-    else:
-        response_text = "Fallback response"
+    # Student data (could be dynamic, like from a database)
+    student_name = "Yogesh Neupane"
+    student_id = "200570557"
 
-    return jsonify({
-        "fulfillmentText": response_text
-    })
+    # Check if the user is asking for student details
+    if intent == 'GetStudentDetails':
+        response_text = f"The student name is {student_name}, and the student ID is {student_id}."
+
+        # JSON Response to be sent back to Dialogflow
+        response = {
+            "fulfillmentText": response_text,  # Text that will be shown in the chat interface
+            "fulfillmentMessages": [
+                {
+                    "text": {
+                        "text": [response_text]  # This is the same text, but in a structured format
+                    }
+                }
+            ],
+            "payload": {
+                "studentName": student_name,  # Custom data you can send in the payload
+                "studentID": student_id
+            },
+            "source": "your-app-on-render"
+        }
+
+    else:
+        response_text = "Sorry, I couldn't find the requested information."
+        response = {
+            "fulfillmentText": response_text,
+            "fulfillmentMessages": [
+                {
+                    "text": {
+                        "text": [response_text]
+                    }
+                }
+            ]
+        }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
